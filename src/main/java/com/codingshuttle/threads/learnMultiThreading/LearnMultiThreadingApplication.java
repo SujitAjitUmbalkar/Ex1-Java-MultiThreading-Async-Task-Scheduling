@@ -43,12 +43,28 @@ public class LearnMultiThreadingApplication implements CommandLineRunner {
                         }
                 );
 
+
+        ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(
+                6,
+                new ThreadFactory()
+                {
+                    @Override
+                    public Thread newThread(Runnable r)
+                    {
+                        return new Thread(r);
+                    }
+                }
+        );
+
         log.info("Starting main Thread : " + Thread.currentThread().getName());
 
-        for (int i = 0; i < 100; i++)
+        for (int i = 0; i < 10; i++)
         {
-            threadPoolExecutor.submit(new LongRunningTask(i+""));
+            scheduledExecutorService.schedule(new LongRunningTask("schedule Task"), 5 ,  TimeUnit.SECONDS);
+
+//            threadPoolExecutor.submit(new LongRunningTask(i+""));
         }
+
 
         log.info("ending main Thread : " + Thread.currentThread().getName());
 
