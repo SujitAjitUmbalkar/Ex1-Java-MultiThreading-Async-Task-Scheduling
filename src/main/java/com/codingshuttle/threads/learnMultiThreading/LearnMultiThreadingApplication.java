@@ -9,65 +9,38 @@ import java.util.concurrent.*;
 
 @SpringBootApplication
 @Slf4j
-public class LearnMultiThreadingApplication implements CommandLineRunner {
+public class LearnMultiThreadingApplication
+{
 
     public static void main(String[] args) throws Exception {
 
         SpringApplication.run(LearnMultiThreadingApplication.class, args);
 
+        learnFuture();
+
     }
 
-    @Override
-    public void run(String... args) throws Exception {
-        ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor
-                (
-                        4,
-                        6,
-                        2,
-                        TimeUnit.SECONDS,
-                        new ArrayBlockingQueue<>(10),
-                        new RejectedExecutionHandler()
-                        {
-                            @Override
-                            public void rejectedExecution(Runnable r, ThreadPoolExecutor executor)
-                            {
-                                log.info("Thread Rejected ... Retrying");
-                                try {
-                                    Thread.sleep(1000);
-                                } catch (InterruptedException e)
-                                {
-                                    throw new RuntimeException(e);
-                                }
-                                executor.submit(r);
-                            }
-                        }
-                );
-
-
-        ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(
-                6,
-                new ThreadFactory()
-                {
-                    @Override
-                    public Thread newThread(Runnable r)
-                    {
-                        return new Thread(r);
-                    }
-                }
-        );
-
-        log.info("Starting main Thread : " + Thread.currentThread().getName());
-
-        for (int i = 0; i < 10; i++)
+    static void learnFuture() throws ExecutionException, InterruptedException
+    {
+        try (ExecutorService executorService = Executors.newFixedThreadPool(4))
         {
-            scheduledExecutorService.schedule(new LongRunningTask("schedule Task"), 5 ,  TimeUnit.SECONDS);
+         Future<String> myName =    executorService.submit(new Callable<String>()
+            {
+                @Override
+                public String call() throws Exception
+                {
+                    log.info("Inside name  Future : {}", Thread.currentThread().getState());
 
-//            threadPoolExecutor.submit(new LongRunningTask(i+""));
+                    Thread.sleep(5000);
+
+                    return "Sujit";
+                }
+            });
+
+         myName.get();
         }
 
-
-        log.info("ending main Thread : " + Thread.currentThread().getName());
-
+        log.info("after nameFuture {} ",Thread.currentThread().getState());
     }
 
 }
